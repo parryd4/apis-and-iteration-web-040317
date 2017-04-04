@@ -2,24 +2,16 @@ require 'rest-client'
 require 'json'
 require 'pry'
 
+
 def get_character_movies_from_api(character)
-  #make the web request
-  all_characters = RestClient.get('http://www.swapi.co/api/people/')
-  character_hash = JSON.parse(all_characters)
-  
-  # iterate over the character hash to find the collection of `films` for the given
-  #   `character`
-  # collect those film API urls, make a web request to each URL to get the info
-  #  for that film
-  # return value of this method should be collection of info about each film.
-  #  i.e. an array of hashes in which each hash reps a given film
-  # this collection will be the argument given to `parse_character_movies`
-  #  and that method will do some nice presentation stuff: puts out a list
-  #  of movies by title. play around with puts out other info about a given film.
+  attribute = get_character_attribute(character,"films")
+  url_to_hash(attribute)
 end
 
 def parse_character_movies(films_hash)
-  # some iteration magic and puts out the movies in a nice list
+  films_hash.each.with_index(1) do |key, index|
+    puts "#{index}. #{key["title"]}"
+  end
 end
 
 def show_character_movies(character)
@@ -31,3 +23,32 @@ end
 
 # that `get_character_movies_from_api` method is probably pretty long. Does it do more than one job?
 # can you split it up into helper methods?
+
+def get_character_attribute(character, attribute)
+  array = []
+  next_page = "http://www.swapi.co/api/people/?page=1"
+
+  while next_page != nil && array == [] do
+    all_characters = RestClient.get(next_page)
+    character_hash = JSON.parse(all_characters)
+
+    character_hash["results"].each do |item|
+      if item["name"].downcase == character
+        array = item[attribute]
+      end
+    end
+    next_page = character_hash["next"]
+  end
+  array
+end
+
+def url_to_hash(array)
+  film_api_array = []
+  array.each do |url|
+    film_api = RestClient.get(url)
+    film_api_hash = JSON.parse(film_api)
+    film_api_array << film_api_hash
+  end
+  film_api_array
+end
+#url_to_hash breaks on "homeworld" because value is not an array

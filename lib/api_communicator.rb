@@ -42,13 +42,18 @@ def get_character_attribute(character, attribute)
   array
 end
 
-def url_to_hash(array)
+def url_to_hash(data_url)
   film_api_array = []
-  array.each do |url|
-    film_api = RestClient.get(url)
-    film_api_hash = JSON.parse(film_api)
-    film_api_array << film_api_hash
+  if data_url.class == String
+    film_api = RestClient.get(data_url)
+    return JSON.parse(film_api)
+    #film_api_array << film_api_hash
+  elsif data_url.class == Array
+    data_url.each do |url|
+      film_api = RestClient.get(url)
+      film_api_hash = JSON.parse(film_api)
+      film_api_array << film_api_hash
+    end
   end
   film_api_array
 end
-#url_to_hash breaks on "homeworld" because value is not an array
